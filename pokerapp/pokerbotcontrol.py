@@ -62,6 +62,7 @@ class PokerBotCotroller:
 
     def _handle_money(self, update: Update, context: CallbackContext) -> None:
         self._model.bonus(update, context)
+        self._model.guaranteed(update, context)
 
     def _handle_button_clicked(
         self,

@@ -230,12 +230,15 @@ class PokerBotModel:
         chat_id = update.effective_message.chat_id
         message_id = update.effective_message.message_id
 
+        # if wallet.has_daily_bonus():
+        #     return self._view.send_message_reply(
+        #         chat_id=chat_id,
+        #         message_id=update.effective_message.message_id,
+        #         text=f"Your money: *{money}$*\n",
+        #     )
+
         if wallet.has_daily_bonus():
-            return self._view.send_message_reply(
-                chat_id=chat_id,
-                message_id=update.effective_message.message_id,
-                text=f"Your money: *{money}$*\n",
-            )
+            return
 
         icon: str
         dice_msg: Message
@@ -270,6 +273,32 @@ class PokerBotModel:
             )
 
         Timer(DICE_DELAY_SEC, print_bonus).start()
+
+    def guaranteed(self, update: Update, context: CallbackContext) -> None:
+        wallet = WalletManagerModel(
+            update.effective_message.from_user.id, self._kv)
+        money = wallet.value()
+
+        chat_id = update.effective_message.chat_id
+        message_id = update.effective_message.message_id
+
+        if wallet.has_daily_guaranteed() or money != 0:
+            return self._view.send_message_reply(
+                chat_id=chat_id,
+                message_id=update.effective_message.message_id,
+                text=f"Your money: *{money}$*\n",
+            )
+
+        guaranteed: Money
+        guaranteed = DEFAULT_MONEY
+
+        money = wallet.add_daily_guaranteed(amount=guaranteed)
+        self._view.send_message_reply(
+            chat_id=chat_id,
+            message_id=message_id,
+            text=f"guaranteed: *{guaranteed}$*\n" +
+            f"Your money: *{money}$*\n",
+            )
 
     def send_cards_to_user(
         self,
@@ -684,6 +713,28 @@ class WalletManagerModel(Wallet):
 
         key = self._prefix(self.user_id)
         self._kv.set(self._key_daily(), self._current_date())
+
+        return self._kv.incrby(key, amount)
+
+    def _key_daily_guaranteed(self) -> str:
+        return self._prefix(self.user_id, ":dailyGuaranteed")
+
+    def has_daily_guaranteed(self) -> bool:
+        current_date_guaranteed = self._current_date()
+        last_date_guaranteed = self._kv.get(self._key_daily_guaranteed())
+
+        return last_date_guaranteed is not None and \
+            last_date_guaranteed.decode("utf-8") == current_date
+
+    def add_daily_guaranteed(self, amount: Money) -> Money:
+        if self.has_daily_guaranteed():
+            raise UserException(
+                "You have already guaranteed today\n"
+                f"Your money: {self.value()}$"
+            )
+
+        key = self._prefix(self.user_id)
+        self._kv.set(self._key_daily_guaranteed(), self._current_date())
 
         return self._kv.incrby(key, amount)
 
