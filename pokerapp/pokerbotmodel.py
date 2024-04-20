@@ -724,7 +724,7 @@ class WalletManagerModel(Wallet):
         last_date_guaranteed = self._kv.get(self._key_daily_guaranteed())
 
         return last_date_guaranteed is not None and \
-            last_date_guaranteed.decode("utf-8") == current_date
+            last_date_guaranteed.decode("utf-8") == current_date_guaranteed
 
     def add_daily_guaranteed(self, amount: Money) -> Money:
         if self.has_daily_guaranteed():
