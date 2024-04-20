@@ -44,7 +44,7 @@ MIN_PLAYERS = 2
 SMALL_BLIND = 5
 ONE_DAY = 86400
 DEFAULT_MONEY = 1000
-MAX_TIME_FOR_TURN = datetime.timedelta(minutes=2)
+MAX_TIME_FOR_TURN = datetime.timedelta(minutes=0.5)
 DESCRIPTION_FILE = "assets/description_bot.md"
 
 
@@ -128,7 +128,11 @@ class PokerBotModel:
             )
 
         game.ready_users.add(user.id)
-
+        self._view.send_message_reply(
+            chat_id=chat_id,
+            message_id=update.effective_message.message_id,
+            text="ready!",
+        )
         game.players.append(player)
 
         members_count = self._bot.get_chat_member_count(chat_id)
