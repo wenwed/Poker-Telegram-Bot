@@ -286,7 +286,7 @@ class PokerBotModel:
         chat_id = update.effective_message.chat_id
         message_id = update.effective_message.message_id
 
-        if wallet.has_daily_guaranteed() or money != 0:
+        if wallet.has_daily_guaranteed() or money > 100:
             return self._view.send_message_reply(
                 chat_id=chat_id,
                 message_id=update.effective_message.message_id,
